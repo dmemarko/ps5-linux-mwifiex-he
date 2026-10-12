@@ -17,6 +17,7 @@ generated against the tree the earlier ones produce:
 | `ps5-iw620-rtnl-bounded-wait.patch` | Bounds the firmware round-trips in `woal_cfg80211_dump_station_info()` so a dead firmware cannot strand RTNL. |
 | `ps5-iw620-he.patch` | Corrects the IW620 5 GHz HE profile across firmware configuration, association and cfg80211; requests TX BA timeout zero. |
 | `ps5-iw620-tx-min128.patch` | Pads short IW620 data DMA transfers to 128 bytes while preserving real packet lengths and DMA ownership. |
+| `ps5-iw620-tx-priority.patch` | Maps IW620 STA TX TIDs 1→2, 3→0 and 5→4 within their access categories before queue selection and BA bookkeeping to avoid priority-triggered stalls. |
 
 ### IW620 HE and aggregation
 
@@ -75,8 +76,6 @@ Two independent causes, hence two patches:
    use `MOAL_IOCTL_WAIT_TIMEOUT`, capping each at 20s. That function backs both
    `.get_station` and `.dump_station`.
 
-Full write-up: `~/installed/ps5-wifi-firmware-hang-freeze.md`.
-
 ### Firmware auto-reset (off by default)
 
 `woal_request_fw_reload()` rejects every mode with `-EINVAL` unless the low byte
@@ -121,7 +120,7 @@ if [ "$(uname -r | cut -d. -f1)" -ge 7 ]; then
     git apply ../ps5-iw620-kernel72-compat.patch || exit 1
 fi
 for patch in ps5-iw620-rtnl-bounded-wait.patch ps5-iw620-he.patch \
-    ps5-iw620-tx-min128.patch; do
+    ps5-iw620-tx-min128.patch ps5-iw620-tx-priority.patch; do
     git apply "../$patch" || exit 1
 done
 make

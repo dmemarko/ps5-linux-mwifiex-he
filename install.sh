@@ -17,6 +17,7 @@ KERNEL72_PATCH=$script_dir/ps5-iw620-kernel72-compat.patch
 RTNL_PATCH=$script_dir/ps5-iw620-rtnl-bounded-wait.patch
 HE_PATCH=$script_dir/ps5-iw620-he.patch
 TX_PATCH=$script_dir/ps5-iw620-tx-min128.patch
+PRIORITY_PATCH=$script_dir/ps5-iw620-tx-priority.patch
 
 MODULE_DIR=/lib/modules/$KERNEL_RELEASE/extra/ps5-iw620
 MODPROBE_CONF=/etc/modprobe.d/ps5-iw620.conf
@@ -169,6 +170,16 @@ prepare_source() {
 		say "IW620 TX padding patch is already applied"
 	else
 		die "TX padding patch does not apply cleanly in $DRIVER_DIR"
+	fi
+
+	[ -f "$PRIORITY_PATCH" ] || die "patch file not found: $PRIORITY_PATCH"
+	if git_driver apply --check "$PRIORITY_PATCH" >/dev/null 2>&1; then
+		say "Applying IW620 TX priority normalization"
+		git_driver apply "$PRIORITY_PATCH"
+	elif git_driver apply -R --check "$PRIORITY_PATCH" >/dev/null 2>&1; then
+		say "IW620 TX priority patch is already applied"
+	else
+		die "TX priority patch does not apply cleanly in $DRIVER_DIR"
 	fi
 }
 
